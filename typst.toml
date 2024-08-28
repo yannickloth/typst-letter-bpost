@@ -1,0 +1,15 @@
+[package]
+name = "letter-bpost"
+version = "0.0.1"
+entrypoint = "src/main/bpostletter.typ"
+authors = ["yannickloth"]
+license = "GPLv3"
+description = "Letter template for Typst with address positioned according to bpost (Belgium) rules."
+repository = "https://github.com/yannickloth/typst-letter-bpost"
+keywords = ["letter", "bpost" , "s42", "Belgium"]
+categories = ["office"]
+
+[template]
+path = "src/template/typst"
+entrypoint = "main.typ"
+thumbnail = "src/template/resources/thumbnail.png"

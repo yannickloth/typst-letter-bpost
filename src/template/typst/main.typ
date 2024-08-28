@@ -1,5 +1,5 @@
-//#import "@yannickloth/letter-bpost:0.0.1": letter-simple
-#import "../../main/typst/bpostletter.typ": letter-simple
+#import "@local/bpostletter:0.0.1": letter-simple
+//#import "../../main/typst/bpostletter.typ": letter-simple
 #set text(lang: "fr")
 
 #show: letter-simple.with(

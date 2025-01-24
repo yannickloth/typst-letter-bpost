@@ -1,5 +1,5 @@
-#import "@local/bpostletter:0.0.1": letter-simple
-//#import "../../main/typst/bpostletter.typ": letter-simple
+//#import "@local/bpostletter:0.0.1": letter-simple
+#import "../../main/typst/bpostletter.typ": letter-simple
 #set text(lang: "fr")
 
 #show: letter-simple.with(
@@ -75,8 +75,8 @@
     ),
     mailRecipientDispatchingInformation: (
       building: ( // Optional, but preferable for Registered mail and Parcels
-        wingType:none,
-        wingIndicator: none,
+        wingType:"Bâtiment",
+        wingIndicator: "Maison Rouge",
         stairwellType: none,
         stairwellIndicator: none,
         floorType: none,
@@ -114,7 +114,7 @@
   subject: lorem(10),
   title: lorem(6),
   salutations: [Madame, Monsieur,],
-  considerations: [Bien cordialement],
+  considerations: [Bien cordialement,],
   post: [*Anlagen:*
 
     - Rechnung],

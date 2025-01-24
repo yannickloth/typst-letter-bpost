@@ -1,3 +1,18 @@
+
+// ####################
+// # typst-letter-pro #
+// ####################
+//
+// Project page:
+// https://github.com/Sematre/typst-letter-pro
+//
+// References:
+// https://de.wikipedia.org/wiki/DIN_5008
+// https://www.deutschepost.de/de/b/briefvorlagen/normbrief-din-5008-vorlage.html
+// https://www.deutschepost.de/content/dam/dpag/images/P_p/printmailing/downloads/automationsfaehige-briefsendungen-2023.pdf
+// https://www.edv-lehrgang.de/din-5008/
+// https://www.edv-lehrgang.de/anschriftfeld-im-din-5008-geschaeftsbrief/
+
 // ##################
 // # Letter formats #
 // ##################
@@ -5,7 +20,8 @@
   "DIN-A4": (
     paper: "a4",
     folding-mark-1-pos: 105mm,
-    folding-mark-2-pos: 105mm + 105mm, //with this, the third fold is a bit shorter than the other two and nicely folds inside those,
+    folding-mark-2-pos: 105mm
+      + 105mm, //with this, the third fold is a bit shorter than the other two and nicely folds inside those,
     hole-mark-pos: 148.5mm,
     header-size: 20mm, //45mm
   ),
@@ -92,6 +108,7 @@
     bottom: 20mm,
   ),
   date: true,
+  textFont: "Georgia",
   body,
 ) = {
   if not letter-formats.keys().contains(format) {
@@ -150,7 +167,7 @@
       }
     },
     footer-descent: 0%,
-    footer: locate(loc => {
+    /* footer: locate(loc => {
       show: pad.with(top: 12pt, bottom: 12pt)
 
       let current-page = loc.page()
@@ -175,7 +192,34 @@
           footer
         }
       )
-    }),
+    }), */
+    footer: {
+      set text(font: textFont)
+      show: pad.with(top: 12pt, bottom: 12pt)
+      context [
+        #let (current-page,) = counter(page).get()
+        #let (page-count,) = counter(page).final()
+        #grid(
+          columns: 1fr,
+          rows: (0.65em, 1fr),
+          row-gutter: 12pt,
+
+          if page-count >= 1 {
+            if type(page-numbering) == str {
+              align(right, numbering(page-numbering, current-page, page-count))
+            } else if type(page-numbering) == function {
+              align(right, page-numbering(current-page, page-count))
+            } else if page-numbering != none {
+              panic("Unsupported option type!")
+            }
+          },
+
+          // if current-page == 1 {
+          //   footer
+          // }
+        )
+      ]
+    },
   )
 
   // Reverse the margin for the header, the address box and the information box
@@ -187,27 +231,33 @@
       grid(
         //fill:blue,
         //gutter: 1mm,
-        columns: (126mm,110mm),
+        columns: (126mm, 110mm),
         rows: (letter-formats.at(format).header-size, 105mm - letter-formats.at(format).header-size - 30mm + 6.5mm),
 
         // Header box
         grid.cell(rowspan: 2, header),
         none,
-        grid.cell(align: top,
-        // Address box
-        pad(left:5mm, right: 20mm, top: 45mm - letter-formats.at(format).header-size + 6.5mm,
-          {
+        grid.cell(
+          align: top,
+          // Address box
+          pad(
+            left: 5mm,
+            right: 20mm,
+            top: 45mm - letter-formats.at(format).header-size + 6.5mm,
+            {
               // Address box
               address-box
-          }
-        ))
+            },
+          ),
+        )
       )
     },
   )
 
-  v(18pt)
+  v(20mm)
 
   // Reference signs
+  set text(font: textFont, hyphenate: false)
   if (reference-signs != none) and (reference-signs.len() > 0) {
     if (date) {
       while (calc.rem(reference-signs.len(), 4) != 3) {
@@ -236,8 +286,6 @@
 
   // Add body.
   body
-
-
 }
 
 // ####################
@@ -262,13 +310,15 @@
 
 
 #let printRecipientSpecificationBlock(
-  addresseeIndividualIdentification: ( // Mandatory if addressed mail
+  addresseeIndividualIdentification: (
+    // Mandatory if addressed mail
     formOfAddress: "Ing.", // Greeting
     givenName: "Yannick", // First Name
     surname: "Loth", // Last Name
-    supplDispatchInfo: none // Customer Number; Only if bpack 24/7
+    supplDispatchInfo: none, // Customer Number; Only if bpack 24/7
   ),
-  maileeIndividualIdentification: ( // If applicable
+  maileeIndividualIdentification: (
+    // If applicable
     roleDescriptor: none,
     formOfAddress: "Madame",
     givenName: "Christine", // First Name
@@ -276,28 +326,31 @@
     address: "rue des Tilleuls 31, 6780 Messancy",
     extra: none, // TODO: DO WE NEED THIS?
   ),
-  maileeOrganizationIdentification: ( // If applicable
+  maileeOrganizationIdentification: (
+    // If applicable
     function: "CFO", // Title
     organizationalUnit: "Dad", // Department
     organizationName: "Andres Loth", // Company Name
     legalStatus: "Family",
   ),
   mailRecipientDispatchingInformation: (
-     building: ( // Optional, but preferable for Registered mail and Parcels
-       wingType:none,
-       wingIndicator: none,
-       stairwellType: none,
-       stairwellIndicator: none,
-       floorType: none,
-       floorIndicator: none,
-       doorType: none,
-       doorIndicator: none
-     ),
-     buildingLevel1: none // Complex of buildings ‐‐ used to reference industrial zones
-   ),
-  otherDeliveryInformation: ( // PO Box Number or “bpack 24/7” name
+    building: (
+      // Optional, but preferable for Registered mail and Parcels
+      wingType: none,
+      wingIndicator: none,
+      stairwellType: none,
+      stairwellIndicator: none,
+      floorType: none,
+      floorIndicator: none,
+      doorType: none,
+      doorIndicator: none,
+    ),
+    buildingLevel1: none, // Complex of buildings ‐‐ used to reference industrial zones
+  ),
+  otherDeliveryInformation: (
+    // PO Box Number or “bpack 24/7” name
     deliveryServiceType: none, // Possible values: ‘Postbus’ or ‘Boite Postale’ or ‘PB’ or ‘BP’ or  bpack
-    deliveryServiceIndicator:none // PO Box number or bpack station name
+    deliveryServiceIndicator: none, // PO Box number or bpack station name
   ),
   deliveryPointLocation: (
     thoroughfareName: "rue des Tilleuls", // Street Name
@@ -313,13 +366,15 @@
   country: "BELGIUM",
 ) = { }
 #let printSenderSpecificationBlock(
-  addresseeIndividualIdentification: ( // Mandatory if addressed mail
+  addresseeIndividualIdentification: (
+    // Mandatory if addressed mail
     formOfAddress: "Ing.", // Greeting
     givenName: "Yannick", // First Name
     surname: "Loth", // Last Name
-    supplDispatchInfo: none // Customer Number; Only if bpack 24/7
+    supplDispatchInfo: none, // Customer Number; Only if bpack 24/7
   ),
-  maileeIndividualIdentification: ( // If applicable
+  maileeIndividualIdentification: (
+    // If applicable
     roleDescriptor: none,
     formOfAddress: "Madame",
     givenName: "Christine", // First Name
@@ -327,28 +382,31 @@
     address: "rue des Tilleuls 31, 6780 Messancy",
     extra: none, // TODO: DO WE NEED THIS?
   ),
-  maileeOrganizationIdentification: ( // If applicable
+  maileeOrganizationIdentification: (
+    // If applicable
     function: "CFO", // Title
     organizationalUnit: "Dad", // Department
     organizationName: "Andres Loth", // Company Name
     legalStatus: "Family",
   ),
   mailRecipientDispatchingInformation: (
-     building: ( // Optional, but preferable for Registered mail and Parcels
-       wingType:none,
-       wingIndicator: none,
-       stairwellType: none,
-       stairwellIndicator: none,
-       floorType: none,
-       floorIndicator: none,
-       doorType: none,
-       doorIndicator: none
-     ),
-     buildingLevel1: none // Complex of buildings ‐‐ used to reference industrial zones
-   ),
-  otherDeliveryInformation: ( // PO Box Number or “bpack 24/7” name
+    building: (
+      // Optional, but preferable for Registered mail and Parcels
+      wingType: none,
+      wingIndicator: none,
+      stairwellType: none,
+      stairwellIndicator: none,
+      floorType: none,
+      floorIndicator: none,
+      doorType: none,
+      doorIndicator: none,
+    ),
+    buildingLevel1: none, // Complex of buildings ‐‐ used to reference industrial zones
+  ),
+  otherDeliveryInformation: (
+    // PO Box Number or “bpack 24/7” name
     deliveryServiceType: none, // Possible values: ‘Postbus’ or ‘Boite Postale’ or ‘PB’ or ‘BP’ or  bpack
-    deliveryServiceIndicator:none // PO Box number or bpack station name
+    deliveryServiceIndicator: none, // PO Box number or bpack station name
   ),
   deliveryPointLocation: (
     thoroughfareName: "rue des Tilleuls", // Street Name
@@ -362,24 +420,36 @@
     ),
   ),
   country: "BELGIUM",
+) = { }
+#let getAdresseeIndividualIdentificationLine(
+  addresseeIndividualIdentification,
+  withFormOfAddress: true,
+  withSupplDispatchInfo: true,
 ) = {
-
+  if (addresseeIndividualIdentification != none) {
+    return (
+      if (withFormOfAddress) {
+        addresseeIndividualIdentification.formOfAddress
+      } else {
+        none
+      },
+      addresseeIndividualIdentification.givenName,
+      addresseeIndividualIdentification.surname,
+      if (withSupplDispatchInfo) {
+        addresseeIndividualIdentification.supplDispatchInfo
+      } else {
+        none
+      },
+    )
+      .filter(v => v != none)
+      .join(" ")
+  }
 }
 #let getMaileeSpecificationBlock(
   addresseeIndividualIdentification,
   maileeIndividualIdentification,
   maileeOrganizationIdentification,
 ) = {
-  let getAdresseeIndividualIdentificationLine(addresseeIndividualIdentification) = {
-    if (addresseeIndividualIdentification != none) {
-      return (
-        addresseeIndividualIdentification.formOfAddress,
-        addresseeIndividualIdentification.givenName,
-        addresseeIndividualIdentification.surname,
-        addresseeIndividualIdentification.supplDispatchInfo,
-      ).filter( v => v != none).join(" ")
-    }
-  }
   let getMaileeIndividualIdentificationLine(individualIdentification) = {
     if (individualIdentification != none) {
       return (
@@ -387,13 +457,15 @@
         individualIdentification.formOfAddress,
         individualIdentification.givenName,
         individualIdentification.surname,
-      ).filter( v => v != none).join(" ")
+      )
+        .filter(v => v != none)
+        .join(" ")
     }
   }
   let getMaileeOrganisationIdentificationLine1(maileeOrganizationIdentification) = {
     if (maileeOrganizationIdentification != none) {
       return (maileeOrganizationIdentification.function, maileeOrganizationIdentification.organizationalUnit)
-        .filter( v => v != none)
+        .filter(v => v != none)
         .join(" ")
     } else {
       return none
@@ -402,7 +474,7 @@
   let getMaileeOrganisationIdentificationLine2(maileeOrganizationIdentification) = {
     if (maileeOrganizationIdentification != none) {
       return (maileeOrganizationIdentification.organizationName, maileeOrganizationIdentification.legalStatus)
-        .filter( v => v != none)
+        .filter(v => v != none)
         .join(" ")
     } else {
       return none
@@ -414,17 +486,26 @@
     getMaileeOrganisationIdentificationLine1(maileeOrganizationIdentification),
     getMaileeOrganisationIdentificationLine2(maileeOrganizationIdentification),
   )
-  return lines.filter( v => v != none).join("\n")
+  return lines.filter(v => v != none).join("\n")
 }
-#let getMailRecipientDispatchingInformationBlock() = {
-
+#let getMailRecipientDispatchingInformationBlock(mailRecipientDispatchingInformation) = {
+  if (mailRecipientDispatchingInformation != none) {
+    return (mailRecipientDispatchingInformation.building.wingType, mailRecipientDispatchingInformation.building.wingIndicator)
+        .filter(v => v != none)
+        .join(" ")
+    
+   } else {
+    return none
+  }
 }
 #let getMandatoryDeliveryInformationBlock(deliveryPointLocation) = {
   (
     deliveryPointLocation.thoroughfareName,
     str(deliveryPointLocation.streetNumberOrPlot),
     deliveryPointLocation.extensionDesignation,
-  ).filter( v => v != none).join(" ")
+  )
+    .filter(v => v != none)
+    .join(" ")
 }
 #let getPostCodeTownCountryBlock(postCodeTown, country, crossBorder) = {
   let block = (
@@ -432,17 +513,20 @@
       str(postCodeTown.postCode),
       postCodeTown.city.town,
       postCodeTown.at("deliveryServiceQualifier", default: none),
-    ).filter( v => v != none).join(" "),
+    )
+      .filter(v => v != none)
+      .join(" "),
   )
   if (crossBorder) {
     block.push(country)
   }
-  return block.filter( v => v != none).join("\n")
+  return block.filter(v => v != none).join("\n")
 }
 #let getAddressBlock(
   addresseeIndividualIdentification,
   maileeIndividualIdentification,
   maileeOrganizationIdentification,
+  mailRecipientDispatchingInformation,
   deliveryPointLocation,
   postCodeTown,
   country,
@@ -454,14 +538,16 @@
       maileeIndividualIdentification,
       maileeOrganizationIdentification,
     ),
-    getMailRecipientDispatchingInformationBlock(),
+    getMailRecipientDispatchingInformationBlock(mailRecipientDispatchingInformation),
     getMandatoryDeliveryInformationBlock(deliveryPointLocation),
     getPostCodeTownCountryBlock(
       postCodeTown,
       country,
       crossBorder,
     ),
-  ).filter( v => v != none).join("\n")
+  )
+    .filter(v => v != none)
+    .join("\n")
 }
 
 
@@ -550,15 +636,16 @@
   footer: none,
   folding-marks: true,
   hole-mark: true,
-  sender: none,
-  recipient: (
-    addresseeIndividualIdentification: ( // Mandatory if addressed mail
+  sender: (
+    addresseeIndividualIdentification: (
+      // Mandatory if addressed mail
       formOfAddress: none, // Greeting
       givenName: none, // First Name
       surname: none, // Last Name
-      supplDispatchInfo: none // Customer Number; Only if bpack 24/7
+      supplDispatchInfo: none, // Customer Number; Only if bpack 24/7
     ),
-    maileeIndividualIdentification: ( // If applicable
+    maileeIndividualIdentification: (
+      // If applicable
       roleDescriptor: none,
       formOfAddress: none,
       givenName: none, // First Name
@@ -566,28 +653,88 @@
       address: none,
       extra: none, // TODO: DO WE NEED THIS?
     ),
-    maileeOrganizationIdentification: ( // If applicable
+    maileeOrganizationIdentification: (
+      // If applicable
       function: none, // Title
       organizationalUnit: none, // Department
       organizationName: none, // Company Name
       legalStatus: none,
     ),
     mailRecipientDispatchingInformation: (
-      building: ( // Optional, but preferable for Registered mail and Parcels
-        wingType:none,
+      building: (
+        // Optional, but preferable for Registered mail and Parcels
+        wingType: none,
         wingIndicator: none,
         stairwellType: none,
         stairwellIndicator: none,
         floorType: none,
         floorIndicator: none,
         doorType: none,
-        doorIndicator: none
+        doorIndicator: none,
       ),
-      buildingLevel1: none // Complex of buildings ‐‐ used to reference industrial zones
+      buildingLevel1: none, // Complex of buildings ‐‐ used to reference industrial zones
     ),
-    otherDeliveryInformation: ( // PO Box Number or “bpack 24/7” name
+    otherDeliveryInformation: (
+      // PO Box Number or “bpack 24/7” name
       deliveryServiceType: none, // Possible values: ‘Postbus’ or ‘Boite Postale’ or ‘PB’ or ‘BP’ or  ‘bpack
-      deliveryServiceIndicator:none // PO Box number or bpack station name
+      deliveryServiceIndicator: none, // PO Box number or bpack station name
+    ),
+    deliveryPointLocation: (
+      thoroughfareName: none, // Street Name
+      streetNumberOrPlot: none, // House Number
+      extensionDesignation: none, // Box Number
+    ),
+    postCodeTown: (
+      postcode: none, // Postal Code
+      city: (
+        town: none, // City
+        deliveryServiceQualifier: none, // When PO Box
+      ),
+    ),
+    country: none, // Country Name
+  ),
+  recipient: (
+    addresseeIndividualIdentification: (
+      // Mandatory if addressed mail
+      formOfAddress: none, // Greeting
+      givenName: none, // First Name
+      surname: none, // Last Name
+      supplDispatchInfo: none, // Customer Number; Only if bpack 24/7
+    ),
+    maileeIndividualIdentification: (
+      // If applicable
+      roleDescriptor: none,
+      formOfAddress: none,
+      givenName: none, // First Name
+      surname: none, // Last Name
+      address: none,
+      extra: none, // TODO: DO WE NEED THIS?
+    ),
+    maileeOrganizationIdentification: (
+      // If applicable
+      function: none, // Title
+      organizationalUnit: none, // Department
+      organizationName: none, // Company Name
+      legalStatus: none,
+    ),
+    mailRecipientDispatchingInformation: (
+      building: (
+        // Optional, but preferable for Registered mail and Parcels
+        wingType: none,
+        wingIndicator: none,
+        stairwellType: none,
+        stairwellIndicator: none,
+        floorType: none,
+        floorIndicator: none,
+        doorType: none,
+        doorIndicator: none,
+      ),
+      buildingLevel1: none, // Complex of buildings ‐‐ used to reference industrial zones
+    ),
+    otherDeliveryInformation: (
+      // PO Box Number or “bpack 24/7” name
+      deliveryServiceType: none, // Possible values: ‘Postbus’ or ‘Boite Postale’ or ‘PB’ or ‘BP’ or  ‘bpack
+      deliveryServiceIndicator: none, // PO Box number or bpack station name
     ),
     deliveryPointLocation: (
       thoroughfareName: none, // Street Name
@@ -623,10 +770,12 @@
     top: 20mm,
     bottom: 20mm,
   ),
-  font: "Source Sans Pro",
-  considerations: none,
+  addressFont: "Liberation Sans", //"Source Sans Pro",
+  textFont: "Georgia",
   salutations: none,
-  post:none,
+  considerations: none,
+  signWithFormOfAddress: true,
+  post: none,
   body,
 ) = {
   margin = (
@@ -642,7 +791,7 @@
     author: "sender info",
   )
 
-  set text(font: font, hyphenate: false)
+  set text(font: addressFont, hyphenate: false)
 
   // Create a simple header if there is none
   if header == none {
@@ -659,6 +808,7 @@
             sender.addresseeIndividualIdentification,
             sender.maileeIndividualIdentification,
             sender.maileeOrganizationIdentification,
+            sender.mailRecipientDispatchingInformation,
             sender.deliveryPointLocation,
             sender.postCodeTown,
             sender.country,
@@ -674,6 +824,7 @@
     recipient.addresseeIndividualIdentification,
     recipient.maileeIndividualIdentification,
     recipient.maileeOrganizationIdentification,
+    recipient.mailRecipientDispatchingInformation,
     recipient.deliveryPointLocation,
     recipient.postCodeTown,
     recipient.country,
@@ -697,16 +848,16 @@
 
     page-numbering: page-numbering,
     margin: margin,
-    date:date,
+    date: date,
     {
       // Add the subject line, if any.
       if subject != none {
-        pad(right: 10%, "Concerne: "+strong(subject))
+        pad(right: 10%, "Concerne: " + strong(subject))
         v(0.65em)
       }
 
       if title != none {
-        par(justify: true,align(center,text(weight:"semibold", 1.5em,title)))
+        par(justify: true, align(center, text(weight: "semibold", 1.5em, title)))
         v(0.65em)
       }
 
@@ -714,22 +865,29 @@
 
       // Add salutations
       if (salutations == none) {
-       panic("salutations are mandatory")
+        panic("salutations are mandatory")
       }
       salutations
 
       body
 
       if (considerations != none) {
-        v(1cm)
+        v(1em)
         considerations
       }
+      v(2cm)
+      h(65%)
+      getAdresseeIndividualIdentificationLine(
+        sender.addresseeIndividualIdentification,
+        withFormOfAddress: signWithFormOfAddress,
+        withSupplDispatchInfo: false,
+      )
       v(1cm)
       //#name
       if post != none {
         v(1fr)
         post
       }
-    }
+    },
   )
 }
